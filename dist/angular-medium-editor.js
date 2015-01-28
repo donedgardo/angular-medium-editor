@@ -5,12 +5,15 @@ angular.module('angular-medium-editor', [])
   .directive('mediumEditor', function() {
 
     return {
-      require: 'ngModel',
+      require: ['ngModel', 'mediumEditor'],
       restrict: 'AE',
       scope: { bindOptions: '=' },
+      controller: function() {},
       link: function(scope, iElement, iAttrs, ctrl) {
 
         angular.element(iElement).addClass('angular-medium-editor');
+
+        ctrl[1].editor = new MediumEditor(iElement, opts);
 
         // Parse options
         var opts = {},
@@ -30,15 +33,15 @@ angular.module('angular-medium-editor', [])
         scope.$watch('bindOptions', function() {
           // in case options are provided after mediumEditor directive has been compiled and linked (and after $render function executed)
           // we need to re-initialize
-          if (ctrl.editor) {
-            ctrl.editor.deactivate();
+          if (ctrl[1].editor) {
+            ctrl[1].editor.deactivate();
           }
           prepOpts();
           // Hide placeholder when the model is not empty
-          if (!ctrl.$isEmpty(ctrl.$viewValue)) {
+          if (!ctrl[0].$isEmpty(ctrl[0].$viewValue)) {
             opts.placeholder = '';
           }
-          ctrl.editor = new MediumEditor(iElement, opts);
+          ctrl[1].editor = new MediumEditor(iElement, opts);
         });
 
         var onChange = function() {
@@ -49,10 +52,10 @@ angular.module('angular-medium-editor', [])
             // lacks an API method to alter placeholder after initialization
             if (iElement.html() === '<p><br></p>' || iElement.html() === '') {
               opts.placeholder = placeholder;
-              var editor = new MediumEditor(iElement, opts);
+              ctrl[1].editor = new MediumEditor(iElement, opts);
             }
 
-            ctrl.$setViewValue(iElement.html());
+            ctrl[0].$setViewValue(iElement.html());
           });
         };
 
@@ -61,21 +64,21 @@ angular.module('angular-medium-editor', [])
         iElement.on('input', onChange);
 
         // model -> view
-        ctrl.$render = function() {
+        ctrl[0].$render = function() {
 
-          if (!this.editor) {
+          if (!ctrl[1].editor) {
             // Hide placeholder when the model is not empty
-            if (!ctrl.$isEmpty(ctrl.$viewValue)) {
+            if (!ctrl[0].$isEmpty(ctrl[0].$viewValue)) {
               opts.placeholder = '';
             }
 
-            this.editor = new MediumEditor(iElement, opts);
+            ctrl[1].editor = new MediumEditor(iElement, opts);
           }
 
-          iElement.html(ctrl.$isEmpty(ctrl.$viewValue) ? '' : ctrl.$viewValue);
-          
+          iElement.html(ctrl[0].$isEmpty(ctrl[0].$viewValue) ? '' : ctrl[0].$viewValue);
+
           // hide placeholder when view is not empty
-          if(!ctrl.$isEmpty(ctrl.$viewValue)) angular.element(iElement).removeClass('medium-editor-placeholder'); 
+          if(!ctrl[0].$isEmpty(ctrl[0].$viewValue)) angular.element(iElement).removeClass('medium-editor-placeholder');
         };
 
       }
