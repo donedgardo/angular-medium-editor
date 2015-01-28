@@ -5,15 +5,22 @@ angular.module('angular-medium-editor', [])
   .directive('mediumEditor', function() {
 
     return {
+      template: "<div class='mediumContent'></div><div ng-transclude></div>",
       require: ['ngModel', 'mediumEditor'],
       restrict: 'AE',
       scope: { bindOptions: '=' },
-      controller: function() {},
+      transclude: true,
+      controller: function() {
+      },
       link: function(scope, iElement, iAttrs, ctrl) {
 
-        angular.element(iElement).addClass('angular-medium-editor');
+        var contentElement = iElement.children('.mediumContent')
 
-        ctrl[1].editor = new MediumEditor(iElement, opts);
+        ctrl[1].editorElement = contentElement
+
+        angular.element(contentElement).addClass('angular-medium-editor');
+
+        ctrl[1].editor = new MediumEditor(contentElement, opts);
 
         // Parse options
         var opts = {},
@@ -41,7 +48,7 @@ angular.module('angular-medium-editor', [])
           if (!ctrl[0].$isEmpty(ctrl[0].$viewValue)) {
             opts.placeholder = '';
           }
-          ctrl[1].editor = new MediumEditor(iElement, opts);
+          ctrl[1].editor = new MediumEditor(contentElement, opts);
         });
 
         var onChange = function() {
@@ -50,18 +57,18 @@ angular.module('angular-medium-editor', [])
 
             // If user cleared the whole text, we have to reset the editor because MediumEditor
             // lacks an API method to alter placeholder after initialization
-            if (iElement.html() === '<p><br></p>' || iElement.html() === '') {
+            if (contentElement.html() === '<p><br></p>' || contentElement.html() === '') {
               opts.placeholder = placeholder;
-              ctrl[1].editor = new MediumEditor(iElement, opts);
+              ctrl[1].editor = new MediumEditor(contentElement, opts);
             }
 
-            ctrl[0].$setViewValue(iElement.html());
+            ctrl[0].$setViewValue(contentElement.html());
           });
         };
 
         // view -> model
-        iElement.on('blur', onChange);
-        iElement.on('input', onChange);
+        contentElement.on('blur', onChange);
+        contentElement.on('input', onChange);
 
         // model -> view
         ctrl[0].$render = function() {
@@ -72,13 +79,13 @@ angular.module('angular-medium-editor', [])
               opts.placeholder = '';
             }
 
-            ctrl[1].editor = new MediumEditor(iElement, opts);
+            ctrl[1].editor = new MediumEditor(contentElement, opts);
           }
 
-          iElement.html(ctrl[0].$isEmpty(ctrl[0].$viewValue) ? '' : ctrl[0].$viewValue);
+          contentElement.html(ctrl[0].$isEmpty(ctrl[0].$viewValue) ? '' : ctrl[0].$viewValue);
 
           // hide placeholder when view is not empty
-          if(!ctrl[0].$isEmpty(ctrl[0].$viewValue)) angular.element(iElement).removeClass('medium-editor-placeholder');
+          if(!ctrl[0].$isEmpty(ctrl[0].$viewValue)) angular.element(contentElement).removeClass('medium-editor-placeholder');
         };
 
       }
