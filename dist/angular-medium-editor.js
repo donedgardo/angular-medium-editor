@@ -62,7 +62,7 @@ angular.module('angular-medium-editor', [])
               ctrl[1].editor = new MediumEditor(contentElement, opts);
             }
 
-            ctrl[0].$setViewValue(contentElement.html());
+            ctrl[0].$setViewValue(ctrl[1].editor.serialize()['element-0'].value);
           });
         };
 
